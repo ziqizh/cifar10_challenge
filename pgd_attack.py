@@ -60,6 +60,22 @@ class LinfPGDAttack:
 
     return x
 
+  def perturb_transferbility(self, x_nat, x_trans, y, sess, step=20):
+    """Given a set of examples (x_nat, y), returns a set of adversarial
+       examples within epsilon of x_nat in l_infinity norm."""
+    x = np.copy(x_trans)
+
+    for i in range(step):
+      grad = sess.run(self.grad, feed_dict={self.model.x_input: x,
+                                            self.model.y_input: y})
+
+      x = np.add(x, self.step_size * np.sign(grad), out=x, casting='unsafe')
+
+      x = np.clip(x, x_nat - self.epsilon, x_nat + self.epsilon)
+      x = np.clip(x, 0, 255) # ensure valid pixel range
+
+    return x
+
 
 if __name__ == '__main__':
   import json
