@@ -75,11 +75,11 @@ if __name__ == '__main__':
   y_batch = cifar.train_data.ys[0:20]
   x_batch_adv = x_batch.copy()
 
-  i = 0
+  idx_atta = 0
 
   with tf.Session() as sess:
     for loop_size in atta_loop:
-        path = args.log_prefix + str(atta_loop[i]) + ".log"
+        path = args.log_prefix + str(atta_loop[idx_atta]) + ".log"
         print(path)
         log_file = open(path, 'w')
         print("Current loop size: {}".format(loop_size))
@@ -112,4 +112,4 @@ if __name__ == '__main__':
 
           log_file.write("{} {} {} {}\n".format(loop_size, atta_step, loss, nat_loss))
         log_file.close()
-        i += 1
+        idx_atta += 1
