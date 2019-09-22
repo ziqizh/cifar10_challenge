@@ -9,21 +9,23 @@ from __future__ import print_function
 
 import argparse
 import os
+import json
 
 import tensorflow as tf
 
+import cifar10_input
 from pgd_attack import LinfPGDAttack
 
 parser = argparse.ArgumentParser(description='TF CIFAR PGD')
-parser.add_argument('--log-path',  default='./data-log/measure/atta-m-loss-default.log',
+parser.add_argument('--log-prefix',  default='./data-log/measure/atta-loss-',
                     help='Log path.')
 parser.add_argument('--gpuid', type=int, default=0,
                     help='The ID of GPU.')                    
-parser.add_argument('--atta-largest-step', type=int, default=40,
+parser.add_argument('--atta-largest-step', type=int, default=20,
                     help='ATTA attack step.')
 parser.add_argument('--atta-loop', type=int, default=10,
                     help='ATTA attack measurement loop.')
-parser.add_argument('--model-dir', default='./checkpoints',
+parser.add_argument('--model-dir', default='./models/m_r100000',
                     help='The dir of the saved model')
 parser.add_argument('--ckpt-step', type=int, default=1000,
                     help='checkpoint step')
@@ -34,12 +36,11 @@ args = parser.parse_args()
 GPUID = args.gpuid
 os.environ["CUDA_VISIBLE_DEVICES"] = str(GPUID)
 
-log_file = open(args.log_path, 'w')
+
+# log_file = open(args.log_path, 'w')
 
 if __name__ == '__main__':
   import json
-
-  from tensorflow.examples.tutorials.mnist import input_data
 
   from model import Model
 
@@ -47,31 +48,40 @@ if __name__ == '__main__':
     config = json.load(config_file)
   
   model_dir = args.model_dir
+  data_path = config['data_path']
   #
   # model_file = tf.train.latest_checkpoint(model_dir)
   # if model_file is None:
   #   print('No model found')
   #   sys.exit()
 
-  model = Model()
+  atta_loop = [1, 2, 4, 6, 8, 10]
+
+  model = Model('train')
   attack = LinfPGDAttack(model,
                          config['epsilon'],
-                         args.atta_largest_step,
-                         config['a'],
+                         config['num_steps'],
+                         config['step_size'],
                          config['random_start'],
                          config['loss_func'])
   saver = tf.train.Saver()
 
-  mnist = input_data.read_data_sets('MNIST_data', one_hot=False)
+  cifar = cifar10_input.CIFAR10Data(data_path)
 
-  x_batch = mnist.train.images[0:500, :]
-  y_batch = mnist.test.labels[0:500]
+  # mnist = input_data.read_data_sets('MNIST_data', one_hot=False)
+
+  x_batch = cifar.train_data.xs[0:20]
+      # mnist.train.images[0:500, :]
+  y_batch = cifar.train_data.ys[0:20]
   x_batch_adv = x_batch.copy()
 
+  i = 0
 
-  atta_loop = [1, 2, 4, 6, 8, 10]
   with tf.Session() as sess:
     for loop_size in atta_loop:
+        path = args.log_prefix + str(atta_loop[i]) + ".log"
+        print(path)
+        log_file = open(path, 'w')
         print("Current loop size: {}".format(loop_size))
         for i in range(args.atta_largest_step):
           atta_step = i + 1
@@ -101,5 +111,5 @@ if __name__ == '__main__':
           print("per:      {}%".format(loss / nat_loss * 100))
 
           log_file.write("{} {} {} {}\n".format(loop_size, atta_step, loss, nat_loss))
-
-log_file.close()
+        log_file.close()
+        i += 1
