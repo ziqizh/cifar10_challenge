@@ -70,9 +70,9 @@ if __name__ == '__main__':
 
   # mnist = input_data.read_data_sets('MNIST_data', one_hot=False)
 
-  x_batch = cifar.train_data.xs[0:20]
+  x_batch = cifar.train_data.xs[0:2]
       # mnist.train.images[0:500, :]
-  y_batch = cifar.train_data.ys[0:20]
+  y_batch = cifar.train_data.ys[0:2]
   x_batch_adv = x_batch.copy()
 
   idx_atta = 0
@@ -95,7 +95,7 @@ if __name__ == '__main__':
             saver.restore(sess, model_ckpt)
 
             x_batch_adv = attack.perturb_transferbility(x_batch, x_batch_adv, y_batch, sess, step=atta_step)
-            cur_ckpt += 300
+            cur_ckpt += args.ckpt_step
 
           nat_dict = {model.x_input: x_batch,
                       model.y_input: y_batch}
