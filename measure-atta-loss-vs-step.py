@@ -69,46 +69,48 @@ if __name__ == '__main__':
   cifar = cifar10_input.CIFAR10Data(data_path)
 
 
-  x_batch = cifar.train_data.xs[0:500]
-      # mnist.train.images[0:500, :]
-  y_batch = cifar.train_data.ys[0:500]
-  x_batch_adv = x_batch.copy()
+
 
   idx_atta = 0
 
   with tf.Session() as sess:
-    for loop_size in atta_loop:
-        path = args.log_prefix + str(atta_loop[idx_atta]) + ".log"
-        print(path)
-        log_file = open(path, 'w')
-        print("Current loop size: {}".format(loop_size))
-        for i in range(args.atta_largest_step):
-          atta_step = i + 1
+      for batch_start in range(0, 512, 64):
+          x_batch = cifar.train_data.xs[batch_start:batch_start+64]
+          # mnist.train.images[0:500, :]
+          y_batch = cifar.train_data.ys[batch_start:batch_start+64]
           x_batch_adv = x_batch.copy()
-          cur_ckpt = args.ckpt - args.ckpt_step * (loop_size - 1)
+          for loop_size in atta_loop:
+            path = args.log_prefix + str(atta_loop[idx_atta]) + "-" + str(batch_start) + ".log"
+            print(path)
+            log_file = open(path, 'w')
+            print("Current loop size: {}".format(loop_size))
+            for i in range(args.atta_largest_step):
+              atta_step = i + 1
+              x_batch_adv = x_batch.copy()
+              cur_ckpt = args.ckpt - args.ckpt_step * (loop_size - 1)
 
-          print(os.path.join(model_dir, "checkpoint-" + str(cur_ckpt)))
+              print(os.path.join(model_dir, "checkpoint-" + str(cur_ckpt)))
 
-          for iteration in range(loop_size):
-            model_ckpt = os.path.join(model_dir, "checkpoint-" + str(cur_ckpt))
-            saver.restore(sess, model_ckpt)
+              for iteration in range(loop_size):
+                model_ckpt = os.path.join(model_dir, "checkpoint-" + str(cur_ckpt))
+                saver.restore(sess, model_ckpt)
 
-            x_batch_adv = attack.perturb_transferbility(x_batch, x_batch_adv, y_batch, sess, step=atta_step)
-            cur_ckpt += args.ckpt_step
+                x_batch_adv = attack.perturb_transferbility(x_batch, x_batch_adv, y_batch, sess, step=atta_step)
+                cur_ckpt += args.ckpt_step
 
-          nat_dict = {model.x_input: x_batch,
-                      model.y_input: y_batch}
-          adv_dict = {model.x_input: x_batch_adv,
-                      model.y_input: y_batch}
+              nat_dict = {model.x_input: x_batch,
+                          model.y_input: y_batch}
+              adv_dict = {model.x_input: x_batch_adv,
+                          model.y_input: y_batch}
 
-          nat_loss = sess.run(model.mean_xent, feed_dict=nat_dict)
-          loss = sess.run(model.mean_xent, feed_dict=adv_dict)
+              nat_loss = sess.run(model.mean_xent, feed_dict=nat_dict)
+              loss = sess.run(model.mean_xent, feed_dict=adv_dict)
 
-          print("Attack iterations:     {}".format(i))
-          print("adv loss:     {}".format(loss))
-          print("nat-loss: {}".format(nat_loss))
-          print("per:      {}%".format(loss / nat_loss * 100))
+              print("Attack iterations:     {}".format(i))
+              print("adv loss:     {}".format(loss))
+              print("nat-loss: {}".format(nat_loss))
+              print("per:      {}%".format(loss / nat_loss * 100))
 
-          log_file.write("{} {} {} {}\n".format(loop_size, atta_step, loss, nat_loss))
-        log_file.close()
-        idx_atta += 1
+              log_file.write("{} {} {} {}\n".format(loop_size, atta_step, loss, nat_loss))
+            log_file.close()
+            idx_atta += 1
