@@ -64,7 +64,7 @@ even = [ n for n in x if n%2==0]
 plt.xticks(even)
 
 plt.xlabel("Attack iterations in each epoch", fontsize=15)
-plt.ylabel("Loss Value", fontsize=15)
+plt.ylabel("Loss value", fontsize=15)
 plt.tick_params(labelsize=10)
 
 plt.legend(fontsize='x-large')

@@ -68,11 +68,10 @@ if __name__ == '__main__':
 
   cifar = cifar10_input.CIFAR10Data(data_path)
 
-  # mnist = input_data.read_data_sets('MNIST_data', one_hot=False)
 
-  x_batch = cifar.train_data.xs[0:2]
+  x_batch = cifar.train_data.xs[0:500]
       # mnist.train.images[0:500, :]
-  y_batch = cifar.train_data.ys[0:2]
+  y_batch = cifar.train_data.ys[0:500]
   x_batch_adv = x_batch.copy()
 
   idx_atta = 0
@@ -102,8 +101,8 @@ if __name__ == '__main__':
           adv_dict = {model.x_input: x_batch_adv,
                       model.y_input: y_batch}
 
-          nat_loss = sess.run(model.xent, feed_dict=nat_dict)
-          loss = sess.run(model.xent, feed_dict=adv_dict)
+          nat_loss = sess.run(model.mean_xent, feed_dict=nat_dict)
+          loss = sess.run(model.mean_xent, feed_dict=adv_dict)
 
           print("Attack iterations:     {}".format(i))
           print("adv loss:     {}".format(loss))
