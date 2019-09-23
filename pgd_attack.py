@@ -50,7 +50,7 @@ class LinfPGDAttack:
       x = np.copy(x_nat)
 
     for i in range(self.num_steps):
-      grad = sess.run(self.grad, feed_dict={self.model.x_input: x,
+      [grad, mean_loss] = sess.run([self.grad, model.mean_xent], feed_dict={self.model.x_input: x,
                                             self.model.y_input: y})
 
       x = np.add(x, self.step_size * np.sign(grad), out=x, casting='unsafe')
