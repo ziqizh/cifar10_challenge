@@ -17,11 +17,11 @@ import cifar10_input
 from pgd_attack import LinfPGDAttack
 
 parser = argparse.ArgumentParser(description='TF CIFAR PGD')
-parser.add_argument('--log-prefix', default='./data-log/measure/atta-loss-vs-step',
+parser.add_argument('--log-prefix', default='./data-log/measure/atta-loss-',
                     help='Log path.')
 parser.add_argument('--gpuid', type=int, default=0,
                     help='The ID of GPU.')
-parser.add_argument('--atta-largest-step', type=int, default=20,
+parser.add_argument('--atta-max-step', type=int, default=50,
                     help='ATTA attack step.')
 parser.add_argument('--atta-loop', type=int, default=10,
                     help='ATTA attack measurement loop.')
@@ -54,8 +54,6 @@ if __name__ == '__main__':
     #   print('No model found')
     #   sys.exit()
 
-    atta_loop = [1, 2, 4, 6, 8, 10]
-
     model = Model('train')
     attack = LinfPGDAttack(model,
                            config['epsilon'],
@@ -67,55 +65,46 @@ if __name__ == '__main__':
 
     cifar = cifar10_input.CIFAR10Data(data_path)
 
-    log_loss = [[0 for x in range(args.atta_largest_step + 1)] for y in range(args.atta_loop + 1)]
+    idx_atta = 0
+    cur_ckpt = args.ckpt
+    log_loss = [[0 for x in range(args.atta_max_step + 1)] for y in range(args.atta_loop + 1)]
+    print(os.path.join(model_dir, "checkpoint-" + str(cur_ckpt)))
+    model_ckpt = os.path.join(model_dir, "checkpoint-" + str(cur_ckpt))
 
     with tf.Session() as sess:
         for batch_start in range(0, 512, 64):
             x_batch = cifar.train_data.xs[batch_start:batch_start + 64]
-            # mnist.train.images[0:500, :]
             y_batch = cifar.train_data.ys[batch_start:batch_start + 64]
             x_batch_adv = x_batch.copy()
 
-            # loop size = m = ATTA-m
-            for loop_size in atta_loop:
-                print("Current loop size: {}".format(loop_size))
-                for i in range(args.atta_largest_step):
-                    atta_step = i + 1
-                    x_batch_adv = x_batch.copy()
-                    cur_ckpt = args.ckpt - args.ckpt_step * (loop_size - 1)
+            for i in range(args.atta_loop):
+                model_number = i + 1
+                x_batch_adv = x_batch.copy()
 
-                    print(os.path.join(model_dir, "checkpoint-" + str(cur_ckpt)))
+                saver.restore(sess, model_ckpt)
 
-                    for iteration in range(loop_size):
-                        model_ckpt = os.path.join(model_dir, "checkpoint-" + str(cur_ckpt))
-                        saver.restore(sess, model_ckpt)
+                x_batch_adv = attack.perturb(x_batch, y_batch, sess, log_loss[model_number], step=args.atta_max_step)
 
-                        x_batch_adv = attack.perturb_transferbility(x_batch, x_batch_adv, y_batch, sess, step=atta_step)
-                        cur_ckpt += args.ckpt_step
+            nat_dict = {model.x_input: x_batch,
+                        model.y_input: y_batch}
+            adv_dict = {model.x_input: x_batch_adv,
+                        model.y_input: y_batch}
 
-                    nat_dict = {model.x_input: x_batch,
-                                model.y_input: y_batch}
-                    adv_dict = {model.x_input: x_batch_adv,
-                                model.y_input: y_batch}
+            nat_loss = sess.run(model.mean_xent, feed_dict=nat_dict)
+            loss = sess.run(model.mean_xent, feed_dict=adv_dict)
 
-                    nat_loss = sess.run(model.mean_xent, feed_dict=nat_dict)
-                    loss = sess.run(model.mean_xent, feed_dict=adv_dict)
-
-                    print("Attack iterations:     {}".format(i))
-                    print("adv loss:     {}".format(loss))
-                    # print("nat-loss: {}".format(nat_loss))
-                    print("per:      {}%".format(loss / nat_loss * 100))
-
-                    print("loop size: {} atta_step: {} loss: {}".format(loop_size, atta_step, loss))
-                    log_loss[loop_size][atta_step] += loss
+            print("adv loss:     {}".format(loss))
+            print("nat-loss: {}".format(nat_loss))
+            print("per:      {}%".format(loss / nat_loss * 100))
 
 
-        for loop_size in atta_loop:
-            path = args.log_prefix + str(loop_size) + ".log"
+        for i in range(args.atta_loop):
+            model_number = i + 1
+            path = args.log_prefix + str(model_number) + ".log"
             print(path)
             log_file = open(path, 'w')
-            for i in range(args.atta_largest_step):
-                atta_step = i + 1
-                log_file.write("{} {} {}\n".format(loop_size, atta_step, log_loss[loop_size][atta_step] / 8.0))
-            log_file.close()
-
+            for ii in range(args.atta_max_step):
+                step = ii + 1
+                log_file.write("{} {} {}\n".format(model_number, step, log_loss[model_number][step] / 8.0))
+        log_file.close()
+        idx_atta += 1
