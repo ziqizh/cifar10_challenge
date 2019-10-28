@@ -22,11 +22,10 @@ if __name__ == '__main__':
     label2 = args.model_name + " Adversarial"
 
     data1 = []
-    length = 79
 
     log_lines1 = log1.readlines()
 
-    for i in range(length):
+    for i in range(len(log_lines1)):
         data1.append([eval(j) for j in log_lines1[i].split(' ')])
 
     print(len(data1))
