@@ -38,12 +38,12 @@ if __name__ == '__main__':
     current_palette = sns.color_palette()
 
     plt.plot(x, nat_acc1, color=current_palette[0], lw=2, label=label1)
-    plt.plot(x, adv_acc1, color=current_palette[0], lw=2, label=label2)
+    plt.plot(x, adv_acc1, color=current_palette[1], lw=2, label=label2)
 
     plt.xlabel("Training iterations", fontsize=15)
     plt.ylabel("Accuracy", fontsize=15)
     plt.tick_params(labelsize=10)
 
-    # plt.legend(fontsize='x-large')
+    plt.legend(fontsize='x-large')
 
     plt.savefig('data-pic/' + args.model_name + '.png')
