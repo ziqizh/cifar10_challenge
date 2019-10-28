@@ -33,11 +33,13 @@ if __name__ == '__main__':
 
     x = np.array([i[0] for i in data1]) + 1
 
-    acc1 = np.array([i[1] for i in data1])
+    nat_acc1 = np.array([i[1] for i in data1])
+    adv_acc1 = np.array([i[2] for i in data1])
 
     current_palette = sns.color_palette()
 
-    plt.plot(x, acc1, color=current_palette[0], lw=2)
+    plt.plot(x, nat_acc1, color=current_palette[0], lw=2, label=label1)
+    plt.plot(x, adv_acc1, color=current_palette[0], lw=2, label=label2)
 
     plt.xlabel("Training iterations", fontsize=15)
     plt.ylabel("Accuracy", fontsize=15)

@@ -13,7 +13,6 @@ import os
 import pickle
 import sys
 import tensorflow as tf
-from tensorflow.examples.tutorials.mnist import input_data
 version = sys.version_info
 
 import numpy as np
