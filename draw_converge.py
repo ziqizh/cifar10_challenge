@@ -1,37 +1,48 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
+import argparse
 
-plt.switch_backend('agg')
+parser = argparse.ArgumentParser(description='CIFAR ACCURACY')
 
-log1 = open('data-log/measure-accuracy/accuracy-m.3.log')
+parser.add_argument('--model-name', default='m.3.model',
+                    help='model name.')
 
+args = parser.parse_args()
 
+# log_file = open(args.log_path, 'w')
 
-data1 = []
-length = 79
+if __name__ == '__main__':
 
-log_lines1 = log1.readlines()
+    plt.switch_backend('agg')
 
-for i in range(length):
-  data1.append([eval(j) for j in log_lines1[i].split(' ')])
+    log1 = open('data-log/measure-accuracy/' + args.model_name + '.log')
 
+    label1 = args.model_name + " Natural"
+    label2 = args.model_name + " Adversarial"
 
-print(len(data1))
+    data1 = []
+    length = 79
 
-x = np.array([i[0] for i in data1]) + 1
+    log_lines1 = log1.readlines()
 
-acc1 = np.array([i[1] for i in data1])
+    for i in range(length):
+        data1.append([eval(j) for j in log_lines1[i].split(' ')])
 
-current_palette = sns.color_palette()
+    print(len(data1))
 
-plt.plot(x, acc1, color=current_palette[0], lw=2)
+    x = np.array([i[0] for i in data1]) + 1
 
+    acc1 = np.array([i[1] for i in data1])
 
-plt.xlabel("Training iterations", fontsize=15)
-plt.ylabel("Accuracy", fontsize=15)
-plt.tick_params(labelsize=10)
+    current_palette = sns.color_palette()
 
-# plt.legend(fontsize='x-large')
+    plt.plot(x, acc1, color=current_palette[0], lw=2)
 
-plt.savefig('data-pic/m.3-accuracy.png')
+    plt.xlabel("Training iterations", fontsize=15)
+    plt.ylabel("Accuracy", fontsize=15)
+    plt.tick_params(labelsize=10)
+
+    # plt.legend(fontsize='x-large')
+
+    plt.savefig('data-pic/' + args.model_name + '.png')

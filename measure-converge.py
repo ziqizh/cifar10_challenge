@@ -25,7 +25,7 @@ parser.add_argument('--atta-loop', type=int, default=10,
                     help='ATTA attack measurement loop.')
 parser.add_argument('--model-name', default='m.3.model',
                     help='model name')
-parser.add_argument('--model-dir', default='./models/data-model/m.3.model/',
+parser.add_argument('--model-dir', default='./models/data-model/',
                     help='The dir of the saved model')
 parser.add_argument('--ckpt-step', type=int, default=4000,
                     help='checkpoint step')
@@ -48,8 +48,7 @@ if __name__ == '__main__':
     with open('config.json') as config_file:
         config = json.load(config_file)
 
-
-    model_dir = args.model_dir
+    model_dir = args.model_dir + args.model_name
     data_path = config['data_path']
 
     model = Model('eval')
@@ -79,8 +78,8 @@ if __name__ == '__main__':
             model_ckpt = os.path.join(model_dir, "checkpoint-" + str(cur_ckpt))
             saver.restore(sess, model_ckpt)
 
-            nat_acc = 0;
-            adv_acc = 0;
+            nat_acc = 0
+            adv_acc = 0
             # print(cifar.eval_data.xs.shape)
             for batch_start in range(0, 10000, batch_size):
                 # print(batch_start)
