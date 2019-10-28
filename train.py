@@ -35,6 +35,12 @@ data_path = config['data_path']
 momentum = config['momentum']
 batch_size = config['training_batch_size']
 
+# Setting up logfile
+# path = ["data-log/train/training-" + str(i) + ".log" for i in range(0, 51)]
+# print(path)
+#
+# log_file = [open(path[i], 'w') for i in range(0, 51)]
+
 # Setting up the data and the model
 raw_cifar = cifar10_input.CIFAR10Data(data_path)
 global_step = tf.contrib.framework.get_or_create_global_step()
@@ -95,12 +101,14 @@ with tf.Session() as sess:
 
   # Main training loop
   for ii in range(max_num_training_steps):
+    print(cifar.train_data)
     x_batch, y_batch = cifar.train_data.get_next_batch(batch_size,
                                                        multiple_passes=True)
 
     # Compute Adversarial Perturbations
     start = timer()
-    x_batch_adv = attack.perturb(x_batch, y_batch, sess)
+    log_file = [0.0] * 52
+    x_batch_adv = attack.perturb(x_batch, y_batch, sess, log_file)
     end = timer()
     training_time += end - start
 
