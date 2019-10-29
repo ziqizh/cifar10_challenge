@@ -35,6 +35,8 @@ parser.add_argument('--ckpt-end', type=int, default=69000,
                     help='checkpoint')
 parser.add_argument('--batch-size', type=int, default=128,
                     help='checkpoint')
+parser.add_argument('--data-size', type=int, default=10000,
+                    help='checkpoint')
 args = parser.parse_args()
 
 GPUID = args.gpuid
@@ -66,10 +68,11 @@ if __name__ == '__main__':
 
     # checkpoint starts from 0
     batch_size = args.batch_size
+    data_size = args.data_size
     cur_ckpt = args.ckpt
     ckpt_step = args.ckpt_step
     ckpt_end = args.ckpt_end
-    path = args.log_prefix + args.model_name + ".log"
+    path = args.log_prefix + args.model_name + '.' + str(data_size) + ".log"
     #     print(path)
     log_file = open(path, 'w')
     log_f = open("data-log/temp.log", 'w')
@@ -81,15 +84,19 @@ if __name__ == '__main__':
             model_ckpt = os.path.join(model_dir, "checkpoint-" + str(cur_ckpt))
             saver.restore(sess, model_ckpt)
 
+            total_nat_corr = 0
+            total_adv_corr = 0
             nat_acc = 0
             adv_acc = 0
             # print(cifar.eval_data.xs.shape)
-            for batch_start in range(0, 10000, batch_size):
+            for batch_start in range(0, data_size, batch_size):
                 # print(batch_start)
-                # batch_end = min(batch_start + batch_size, 10000)
+                batch_end = min(batch_start + batch_size, data_size)
                 # size = batch_end - batch_start
                 # print(size)
-                x_batch, y_batch = cifar.eval_data.get_next_batch(batch_size, multiple_passes=True)
+                x_batch = cifar.eval_data.xs[batch_start:batch_end]
+                y_batch = cifar.eval_data.ys[batch_start:batch_end]
+                # x_batch, y_batch = cifar.eval_data.get_next_batch(batch_size, multiple_passes=True)
                 x_batch_adv = attack.perturb(x_batch, y_batch, sess, log_f)
 
                 batch_s = x_batch.shape[0]
@@ -100,18 +107,16 @@ if __name__ == '__main__':
                 adv_dict = {model.x_input: x_batch_adv,
                             model.y_input: y_batch}
 
-                nat_accuracy = sess.run(model.accuracy, feed_dict=nat_dict)
-                adv_accuracy = sess.run(model.accuracy, feed_dict=adv_dict)
-                print("batch nat acc: {}, adv acc: {}".format(nat_accuracy, adv_accuracy))
-                nat_acc += nat_accuracy * batch_s
-                adv_acc += adv_accuracy * batch_s
+                nat_corr = sess.run(model.num_correct, feed_dict=nat_dict)
+                adv_corr = sess.run(model.num_correct, feed_dict=adv_dict)
+                print("batch nat corr: {}, adv corr: {}".format(nat_corr, adv_corr))
+                total_nat_corr += nat_corr
+                total_adv_corr += adv_corr
 
-            nat_acc /= 10000
-            adv_acc /= 10000
+            nat_acc = total_nat_corr / data_size
+            adv_acc = total_adv_corr / data_size
             print("nat acc:     {}".format(nat_acc))
             print("adv acc:     {}".format(adv_acc))
-            # for i in range(args.atta_loop):
-            #     model_number = i + 1
 
             log_file.write("{} {} {}\n".format(cur_ckpt, nat_acc, adv_acc))
             cur_ckpt += ckpt_step

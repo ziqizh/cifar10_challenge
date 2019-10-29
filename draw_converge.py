@@ -7,6 +7,8 @@ parser = argparse.ArgumentParser(description='CIFAR ACCURACY')
 
 parser.add_argument('--model-name', default='m.3.model',
                     help='model name.')
+parser.add_argument('--data-size', type=int, default=10000,
+                    help='the test sample size')
 
 args = parser.parse_args()
 
@@ -16,7 +18,7 @@ if __name__ == '__main__':
 
     plt.switch_backend('agg')
 
-    log1 = open('data-log/measure-accuracy/' + args.model_name + '.log')
+    log1 = open('data-log/measure-accuracy/' + args.model_name + '.' + str(args.data_size) + '.log')
 
     label1 = args.model_name + " Natural"
     label2 = args.model_name + " Adversarial"
@@ -46,4 +48,4 @@ if __name__ == '__main__':
 
     plt.legend(fontsize='x-large')
 
-    plt.savefig('data-pic/' + args.model_name + '.png')
+    plt.savefig('data-pic/' + args.model_name + '.' + str(args.data_size) + '.png')
