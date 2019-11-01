@@ -2,7 +2,7 @@
 
 #path="/data/hzzheng/Code.baseline-atta.cifar10_challenge.10.21/data-model/"
 #python measure-converge.py --model-name m.1.model --ckpt-start 40000 --ckpt-end 50000 --ckpt-step 1000 --model-dir /data/hzzheng/Code.baseline-atta.cifar10_challenge.10.21/data-model/ --gpuid 3
-python measure-converge.py --model-name m.1.model --ckpt-end 79000 --ckpt-step 4000 --model-dir /data/hzzheng/Code.baseline-atta.cifar10_challenge.10.21/data-model/ --gpuid 3
+python measure-converge.py --model-name m.1.model --ckpt-end 79000 --ckpt-step 4000 --model-dir /data/hzzheng/Code.baseline-atta.cifar10_challenge.10.21/data-model/ --gpuid 0
 #python draw_converge.py --model-name m.1.model
 #python measure-converge.py --model-name m.1.model.nlr
 #python draw_converge.py --model-name m.1.model.nlr
