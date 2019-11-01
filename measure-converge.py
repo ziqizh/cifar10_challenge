@@ -31,6 +31,8 @@ parser.add_argument('--ckpt-step', type=int, default=4000,
                     help='checkpoint step')
 parser.add_argument('--ckpt', type=int, default=0,
                     help='checkpoint')
+parser.add_argument('--ckpt-start', type=int, default=0,
+                    help='checkpoint')
 parser.add_argument('--ckpt-end', type=int, default=69000,
                     help='checkpoint')
 parser.add_argument('--batch-size', type=int, default=128,
@@ -71,6 +73,7 @@ if __name__ == '__main__':
     data_size = args.data_size
     cur_ckpt = args.ckpt
     ckpt_step = args.ckpt_step
+    ckpt_start = args.ckpt_start
     ckpt_end = args.ckpt_end
     path = args.log_prefix + args.model_name + '.' + str(data_size) + ".log"
     #     print(path)
@@ -79,7 +82,7 @@ if __name__ == '__main__':
     # log_loss = [[0 for x in range(args.atta_max_step + 1)] for y in range(args.atta_loop + 1)]
 
     with tf.Session() as sess:
-        for cur_ckpt in range(0, ckpt_end, ckpt_step):
+        for cur_ckpt in range(ckpt_start, ckpt_end, ckpt_step):
             print(os.path.join(model_dir, "checkpoint-" + str(cur_ckpt)))
             model_ckpt = os.path.join(model_dir, "checkpoint-" + str(cur_ckpt))
             saver.restore(sess, model_ckpt)
