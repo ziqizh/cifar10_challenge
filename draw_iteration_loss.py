@@ -43,7 +43,7 @@ for i in range(length):
 
 print(len(data1))
 
-x = np.array([i[1] for i in data1]) + 1
+x = np.array([i[1] for i in data1])
 
 adv_loss1 = np.array([i[2] for i in data1])
 adv_loss2 = np.array([i[2] for i in data2])
@@ -60,7 +60,7 @@ plt.plot(x, adv_loss3, color=current_palette[2], label=label3, lw=2)
 plt.plot(x, adv_loss4, color=current_palette[3], label=label4, lw=2)
 plt.plot(x, adv_loss5, color=current_palette[4], label=label5, lw=2)
 plt.plot(x, adv_loss6, color=current_palette[5], label=label6, lw=2)
-even = [ n for n in x if n%2==0]
+even = [ n for n in x if n%2==0 or n==1]
 plt.xticks(even)
 
 plt.xlabel("Attack iterations in each epoch", fontsize=15)
