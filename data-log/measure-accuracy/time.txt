@@ -1,0 +1,3 @@
+m.1 587.13 minutes
+m.3 1070.116 minutes
+m.10 1299.2 minutes
