@@ -9,6 +9,8 @@ parser.add_argument('--model-name', default='m.3.model',
                     help='model name.')
 parser.add_argument('--data-size', type=int, default=10000,
                     help='the test sample size')
+parser.add_argument('--ext', default='.log',
+                    help='the test sample size')
 
 args = parser.parse_args()
 
@@ -18,7 +20,7 @@ if __name__ == '__main__':
 
     plt.switch_backend('agg')
 
-    log1 = open('data-log/measure-accuracy/' + args.model_name + '.' + str(args.data_size) + '.log')
+    log1 = open('data-log/measure-accuracy/' + args.model_name + '.' + str(args.data_size) + args.ext)
 
     label1 = args.model_name + " Natural"
     label2 = args.model_name + " Adversarial"
