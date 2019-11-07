@@ -26,4 +26,3 @@
 python measure-converge.py --model-name m.1.model.lr --ckpt-end 39000 --ckpt-step 2000 --gpuid 0 --model-dir /home/hzzheng/Code/baseline-atta/cifar10_challenge/data-model/
 python measure-converge.py --model-name m.2.model.lr --ckpt-end 39000 --ckpt-step 2000 --gpuid 0 --model-dir /home/hzzheng/Code/baseline-atta/cifar10_challenge/data-model/
 python measure-converge.py --model-name m.3.model.lr --ckpt-end 39000 --ckpt-step 2000 --gpuid 0 --model-dir /home/hzzheng/Code/baseline-atta/cifar10_challenge/data-model/
-python measure-converge.py --model-name m.10.model.lr --ckpt-end 39000 --ckpt-step 2000 --gpuid 0 --model-dir /home/hzzheng/Code/baseline-atta/cifar10_challenge/data-model/
