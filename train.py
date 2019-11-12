@@ -108,7 +108,7 @@ with tf.Session() as sess:
 
   # Main training loop
   for ii in range(max_num_training_steps):
-    print(cifar.train_data)
+    # print(cifar.train_data)
     x_batch, y_batch = cifar.train_data.get_next_batch(batch_size,
                                                        multiple_passes=True)
 
