@@ -138,17 +138,17 @@ with tf.Session() as sess:
     #   summary = sess.run(merged_summaries, feed_dict=adv_dict)
     #   summary_writer.add_summary(summary, global_step.eval(sess))
 
-    # Write a checkpoint
-    start = timer()
-    if ii % num_checkpoint_steps == 0:
-      saver.save(sess,
-                 os.path.join(model_dir, 'checkpoint'),
-                 global_step=global_step)
-
     # Actual training step
-
+    start = timer()
     sess.run(train_step, feed_dict=nat_dict)
     end = timer()
     training_time += end - start
-    log_f.write("{} {} {}".format(ii, nat_acc, training_time))
+
+    # Write a checkpoint
+    if ii % num_checkpoint_steps == 0:
+        log_f.write("{} {} {}".format(ii, nat_acc, training_time))
+        saver.save(sess,
+                   os.path.join(model_dir, 'checkpoint'),
+                   global_step=global_step)
+
 
