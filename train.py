@@ -99,6 +99,10 @@ with tf.Session() as sess:
   sess.run(tf.global_variables_initializer())
   training_time = 0.0
 
+  path = "natural-training-log.txt"
+  #     print(path)
+  log_f = open(path, 'w')
+
   # Main training loop
   for ii in range(max_num_training_steps):
     print(cifar.train_data)
@@ -106,42 +110,45 @@ with tf.Session() as sess:
                                                        multiple_passes=True)
 
     # Compute Adversarial Perturbations
-    start = timer()
-    log_file = [0.0] * 52
-    x_batch_adv = attack.perturb(x_batch, y_batch, sess, log_file)
-    end = timer()
-    training_time += end - start
+    # start = timer()
+    # log_file = [0.0] * 52
+    # # x_batch_adv = attack.perturb(x_batch, y_batch, sess, log_file, step=0)
+    # end = timer()
+    # training_time += end - start
 
     nat_dict = {model.x_input: x_batch,
                 model.y_input: y_batch}
 
-    adv_dict = {model.x_input: x_batch_adv,
-                model.y_input: y_batch}
+    # adv_dict = {model.x_input: x_batch_adv,
+    #             model.y_input: y_batch}
 
     # Output to stdout
     if ii % num_output_steps == 0:
       nat_acc = sess.run(model.accuracy, feed_dict=nat_dict)
-      adv_acc = sess.run(model.accuracy, feed_dict=adv_dict)
+      # adv_acc = sess.run(model.accuracy, feed_dict=adv_dict)
       print('Step {}:    ({})'.format(ii, datetime.now()))
       print('    training nat accuracy {:.4}%'.format(nat_acc * 100))
-      print('    training adv accuracy {:.4}%'.format(adv_acc * 100))
+      # print('    training adv accuracy {:.4}%'.format(adv_acc * 100))
       if ii != 0:
         print('    {} examples per second'.format(
             num_output_steps * batch_size / training_time))
         training_time = 0.0
     # Tensorboard summaries
-    if ii % num_summary_steps == 0:
-      summary = sess.run(merged_summaries, feed_dict=adv_dict)
-      summary_writer.add_summary(summary, global_step.eval(sess))
+    # if ii % num_summary_steps == 0:
+    #   summary = sess.run(merged_summaries, feed_dict=adv_dict)
+    #   summary_writer.add_summary(summary, global_step.eval(sess))
 
     # Write a checkpoint
+    start = timer()
     if ii % num_checkpoint_steps == 0:
       saver.save(sess,
                  os.path.join(model_dir, 'checkpoint'),
                  global_step=global_step)
 
     # Actual training step
-    start = timer()
-    sess.run(train_step, feed_dict=adv_dict)
+
+    sess.run(train_step, feed_dict=nat_dict)
     end = timer()
     training_time += end - start
+    log_f.write("{} {} {}".format(ii, nat_acc, training_time))
+
