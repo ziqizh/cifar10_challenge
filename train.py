@@ -91,7 +91,7 @@ merged_summaries = tf.summary.merge_all()
 
 # keep the configuration file with the model for reproducibility
 shutil.copy('config.json', model_dir)
-
+data_size = 10000
 with tf.Session() as sess:
 
   # initialize data augmentation
@@ -126,16 +126,16 @@ with tf.Session() as sess:
     #             model.y_input: y_batch}
 
     # Output to stdout
-    if ii % num_output_steps == 0:
-      nat_acc = sess.run(model.accuracy, feed_dict=nat_dict)
-      # adv_acc = sess.run(model.accuracy, feed_dict=adv_dict)
-      print('Step {}:    ({})'.format(ii, datetime.now()))
-      print('    training nat accuracy {:.4}%'.format(nat_acc * 100))
-      # print('    training adv accuracy {:.4}%'.format(adv_acc * 100))
-      if ii != 0:
-        print('    {} examples per second'.format(
-            num_output_steps * batch_size / training_time))
-        training_time = 0.0
+    # if ii % num_output_steps == 0:
+    #   nat_acc = sess.run(model.accuracy, feed_dict=nat_dict)
+    #   # adv_acc = sess.run(model.accuracy, feed_dict=adv_dict)
+    #   print('Step {}:    ({})'.format(ii, datetime.now()))
+    #   print('    training nat accuracy {:.4}%'.format(nat_acc * 100))
+    #   # print('    training adv accuracy {:.4}%'.format(adv_acc * 100))
+    #   if ii != 0:
+    #     print('    {} examples per second'.format(
+    #         num_output_steps * batch_size / training_time))
+    #     training_time = 0.0
     # Tensorboard summaries
     # if ii % num_summary_steps == 0:
     #   summary = sess.run(merged_summaries, feed_dict=adv_dict)
@@ -144,14 +144,39 @@ with tf.Session() as sess:
     # Actual training step
     start = timer()
     sess.run(train_step, feed_dict=nat_dict)
-    end = timer()
-    training_time += end - start
 
     # Write a checkpoint
     if ii % num_checkpoint_steps == 0:
-        log_f.write("{} {} {}".format(ii, nat_acc, training_time))
         saver.save(sess,
                    os.path.join(model_dir, 'checkpoint'),
                    global_step=global_step)
+        end = timer()
+        training_time += end - start
+
+        total_nat_corr = 0
+        nat_acc = 0
+        # print(cifar.eval_data.xs.shape)
+        for batch_start in range(0, data_size, batch_size):
+            # print(batch_start)
+            batch_end = min(batch_start + batch_size, data_size)
+            # size = batch_end - batch_start
+            # print(size)
+            x_batch = raw_cifar.eval_data.xs[batch_start:batch_end]
+            y_batch = raw_cifar.eval_data.ys[batch_start:batch_end]
+            # x_batch, y_batch = cifar.eval_data.get_next_batch(batch_size, multiple_passes=True)
+
+            nat_dict = {model.x_input: x_batch,
+                        model.y_input: y_batch}
+
+            nat_corr = sess.run(model.num_correct, feed_dict=nat_dict)
+            total_nat_corr += nat_corr
+
+        nat_acc = total_nat_corr / data_size
+        print("step: {} nat_acc: {} training time: {}".format(ii, nat_acc, training_time))
+        log_f.write("{} {} {}\n".format(ii, nat_acc, training_time))
+    else:
+        end = timer()
+        training_time += end - start
+
 
 
