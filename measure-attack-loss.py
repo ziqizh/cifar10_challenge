@@ -67,44 +67,51 @@ if __name__ == '__main__':
 
     idx_atta = 0
     cur_ckpt = args.ckpt
-    log_loss = [[0 for x in range(args.atta_max_step + 1)] for y in range(args.atta_loop + 1)]
+    log_loss = [0 for x in range(args.atta_max_step + 1)]
     print(os.path.join(model_dir, "checkpoint-" + str(cur_ckpt)))
     model_ckpt = os.path.join(model_dir, "checkpoint-" + str(cur_ckpt))
-
+    s = 0
     with tf.Session() as sess:
-        for batch_start in range(0, 512, 64):
-            x_batch = cifar.train_data.xs[batch_start:batch_start + 64]
-            y_batch = cifar.train_data.ys[batch_start:batch_start + 64]
-            x_batch_adv = x_batch.copy()
-
-            for i in range(args.atta_loop):
-                model_number = i + 1
-                x_batch_adv = x_batch.copy()
-
-                saver.restore(sess, model_ckpt)
-
-                x_batch_adv = attack.perturb(x_batch, y_batch, sess, log_loss[model_number], step=args.atta_max_step)
-
-            nat_dict = {model.x_input: x_batch,
-                        model.y_input: y_batch}
-            adv_dict = {model.x_input: x_batch_adv,
-                        model.y_input: y_batch}
-
-            nat_loss = sess.run(model.mean_xent, feed_dict=nat_dict)
-            loss = sess.run(model.mean_xent, feed_dict=adv_dict)
-
-            print("adv loss:     {}".format(loss))
-            print("nat-loss: {}".format(nat_loss))
-            print("per:      {}%".format(loss / nat_loss * 100))
-
-
         for i in range(args.atta_loop):
             model_number = i + 1
             path = args.log_prefix + str(model_number) + ".log"
             print(path)
             log_file = open(path, 'w')
+            log_loss = [0 for x in range(args.atta_max_step + 1)]
+            total_nat_loss = 0
+            total_adv_loss = 0
+            for batch_start in range(s, s + 256, 64):
+                x_batch = cifar.train_data.xs[batch_start:batch_start + 64]
+                y_batch = cifar.train_data.ys[batch_start:batch_start + 64]
+
+                saver.restore(sess, model_ckpt)
+
+                x_batch_adv = attack.perturb(x_batch, y_batch, sess, log_loss, step=args.atta_max_step)
+
+                # nat_dict = {model.x_input: x_batch,
+                #             model.y_input: y_batch}
+                # adv_dict = {model.x_input: x_batch_adv,
+                #             model.y_input: y_batch}
+                #
+                # nat_loss = sess.run(model.mean_xent, feed_dict=nat_dict)
+                # loss = sess.run(model.mean_xent, feed_dict=adv_dict)
+                #
+                # print("adv loss:     {}".format(loss))
+                # print("nat-loss: {}".format(nat_loss))
+                # print("per:      {}%".format(loss / nat_loss * 100))
             for ii in range(args.atta_max_step):
                 step = ii + 1
-                log_file.write("{} {} {}\n".format(model_number, step, log_loss[model_number][step] / 8.0))
-        log_file.close()
-        idx_atta += 1
+                log_file.write("{} {} {}\n".format(model_number, step, log_loss[step] / 4.0))
+            s += 256
+
+
+        # for i in range(args.atta_loop):
+        #     model_number = i + 1
+        #     path = args.log_prefix + str(model_number) + ".log"
+        #     print(path)
+        #     log_file = open(path, 'w')
+        #     for ii in range(args.atta_max_step):
+        #         step = ii + 1
+        #         log_file.write("{} {} {}\n".format(model_number, step, log_loss[model_number][step] / 8.0))
+        # log_file.close()
+        # idx_atta += 1
