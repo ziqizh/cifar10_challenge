@@ -17,7 +17,7 @@ import cifar10_input
 from pgd_attack import LinfPGDAttack
 
 parser = argparse.ArgumentParser(description='TF CIFAR PGD')
-parser.add_argument('--log-prefix', default='./data-log/measure-accuracy/',
+parser.add_argument('--model-ckpt', default='/data/hzzheng/Code.baseline-atta.cifar10_challenge.10.21/data-model/m.10.model/checkpoint-44000',
                     help='Log path.')
 parser.add_argument('--gpuid', type=int, default=0,
                     help='The ID of GPU.')
@@ -75,53 +75,47 @@ if __name__ == '__main__':
     ckpt_step = args.ckpt_step
     ckpt_start = args.ckpt_start
     ckpt_end = args.ckpt_end
-    path = args.log_prefix + args.model_name + '.' + str(data_size) + ".log"
+    # path = args.log_prefix + args.model_name + '.' + str(data_size) + ".log"
     #     print(path)
-    log_file = open(path, 'w')
-    log_f = open("data-log/temp.log", 'w')
+    # log_file = open(path, 'w')
+    # log_f = open("data-log/temp.log", 'w')
     # log_loss = [[0 for x in range(args.atta_max_step + 1)] for y in range(args.atta_loop + 1)]
 
     with tf.Session() as sess:
-        for cur_ckpt in range(ckpt_start, ckpt_end, ckpt_step):
-            print(os.path.join(model_dir, "checkpoint-" + str(cur_ckpt)))
-            model_ckpt = os.path.join(model_dir, "checkpoint-" + str(cur_ckpt))
-            saver.restore(sess, model_ckpt)
+        model_ckpt = args.model_ckpt
+        saver.restore(sess, model_ckpt)
 
-            total_nat_corr = 0
-            total_adv_corr = 0
-            nat_acc = 0
-            adv_acc = 0
-            # print(cifar.eval_data.xs.shape)
-            for batch_start in range(0, data_size, batch_size):
-                # print(batch_start)
-                batch_end = min(batch_start + batch_size, data_size)
-                # size = batch_end - batch_start
-                # print(size)
-                x_batch = cifar.eval_data.xs[batch_start:batch_end]
-                y_batch = cifar.eval_data.ys[batch_start:batch_end]
-                # x_batch, y_batch = cifar.eval_data.get_next_batch(batch_size, multiple_passes=True)
-                x_batch_adv = attack.perturb(x_batch, y_batch, sess)
+        total_nat_corr = 0
+        total_adv_corr = 0
+        nat_acc = 0
+        adv_acc = 0
+        # print(cifar.eval_data.xs.shape)
+        for batch_start in range(0, data_size, batch_size):
+            # print(batch_start)
+            batch_end = min(batch_start + batch_size, data_size)
+            # size = batch_end - batch_start
+            # print(size)
+            x_batch = cifar.eval_data.xs[batch_start:batch_end]
+            y_batch = cifar.eval_data.ys[batch_start:batch_end]
+            # x_batch, y_batch = cifar.eval_data.get_next_batch(batch_size, multiple_passes=True)
+            x_batch_adv = attack.perturb(x_batch, y_batch, sess)
 
-                batch_s = x_batch.shape[0]
-                # print(batch_s)
+            batch_s = x_batch.shape[0]
+            # print(batch_s)
 
-                nat_dict = {model.x_input: x_batch,
-                            model.y_input: y_batch}
-                adv_dict = {model.x_input: x_batch_adv,
-                            model.y_input: y_batch}
+            nat_dict = {model.x_input: x_batch,
+                        model.y_input: y_batch}
+            adv_dict = {model.x_input: x_batch_adv,
+                        model.y_input: y_batch}
 
-                nat_corr = sess.run(model.num_correct, feed_dict=nat_dict)
-                adv_corr = sess.run(model.num_correct, feed_dict=adv_dict)
-                print("batch nat corr: {}, adv corr: {}".format(nat_corr, adv_corr))
-                total_nat_corr += nat_corr
-                total_adv_corr += adv_corr
+            nat_corr = sess.run(model.num_correct, feed_dict=nat_dict)
+            adv_corr = sess.run(model.num_correct, feed_dict=adv_dict)
+            print("batch nat corr: {}, adv corr: {}".format(nat_corr, adv_corr))
+            total_nat_corr += nat_corr
+            total_adv_corr += adv_corr
 
-            nat_acc = total_nat_corr / data_size
-            adv_acc = total_adv_corr / data_size
-            print("nat acc:     {}".format(nat_acc))
-            print("adv acc:     {}".format(adv_acc))
+        nat_acc = total_nat_corr / data_size
+        adv_acc = total_adv_corr / data_size
+        print("nat acc:     {}".format(nat_acc))
+        print("adv acc:     {}".format(adv_acc))
 
-            log_file.write("{} {} {}\n".format(cur_ckpt, nat_acc, adv_acc))
-            cur_ckpt += ckpt_step
-
-    log_file.close()

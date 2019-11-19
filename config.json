@@ -24,9 +24,9 @@
 
   "_comment": "=====ADVERSARIAL EXAMPLES CONFIGURATION=====",
   "epsilon": 8.0,
-  "num_steps": 10,
+  "num_steps": 20,
   "step_size": 2.0,
   "random_start": true,
-  "loss_func": "xent",
+  "loss_func": "cw",
   "store_adv_path": "attack.npy"
 }

@@ -43,7 +43,7 @@ batch_size = config['training_batch_size']
 
 # Setting up the data and the model
 
-GPUID = 0
+GPUID = 1
 os.environ["CUDA_VISIBLE_DEVICES"] = str(GPUID)
 raw_cifar = cifar10_input.CIFAR10Data(data_path)
 global_step = tf.contrib.framework.get_or_create_global_step()

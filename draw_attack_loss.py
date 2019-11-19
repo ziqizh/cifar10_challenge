@@ -77,11 +77,12 @@ plt.plot(x, adv_loss7, color=current_palette[6], lw=2)
 plt.plot(x, adv_loss8, color=current_palette[7], lw=2)
 plt.plot(x, adv_loss9, color=current_palette[8], lw=2)
 plt.plot(x, adv_loss10, color=current_palette[9], lw=2)
+plt.yticks([0, 0.1, 0.2, 0.3, 0.4])
 
-plt.xlabel("Attack iterations", fontsize=15)
-plt.ylabel("Loss value", fontsize=15)
-plt.tick_params(labelsize=10)
+plt.xlabel("Attack iterations", fontsize=18)
+plt.ylabel("Loss value", fontsize=18)
+plt.tick_params(labelsize=13)
 
 # plt.legend(fontsize='x-large')
 
-plt.savefig('data-pic/multiple-checkpoints-attack-loss.png')
+plt.savefig('data-pic/multiple-checkpoints-attack-loss.pdf')
